@@ -1,0 +1,17 @@
+name: TextEngine
+description: Recursive pattern replacement engine for generating text from word and pattern lists.
+version: 0.0.1
+homepage: https://github.com/FarragoFiction/TextEngine
+author: paradoxLands
+
+environment:
+  sdk: '>=1.20.1 <2.0.0'
+
+dependencies:
+  CommonLib:
+    git: git://github.com/FarragoFiction/CommonLib.git
+  LoaderLib:
+    git: git://github.com/FarragoFiction/LoaderLib.git
+
+dev_dependencies:
+  test: ^0.12.0

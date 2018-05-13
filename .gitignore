@@ -1,0 +1,19 @@
+# IntelliJ and mac stuff
+.idea/
+*.iml
+*.DS_Store
+.DS_Store
+
+# Files and directories created by pub
+.dart_tool/
+.packages
+.pub/
+build/
+pubspec.lock
+
+# Directory created by dartdoc
+doc/api/
+
+# Don't push bundles or manifest files
+*.bundle
+web/manifest/manifest.txt
