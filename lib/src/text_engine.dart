@@ -84,7 +84,7 @@ class TextEngine {
 
         _loadedFiles.add(key);
 
-        WordListFile file = await Loader.getResource("$WORDLIST_PATH$key.words");
+        WordListFile file = await Loader.getResource("$WORDLIST_PATH$key.words", format: FORMAT);
 
         sourceWordLists.addAll(file.lists);
 
