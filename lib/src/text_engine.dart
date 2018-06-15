@@ -54,7 +54,7 @@ class TextEngine {
         this.rand = new Random(seed);
     }
 
-    String phrase(String rootList, [String variant = null]) {
+    String phrase(String rootList, {String variant = null, TextStory story = null}) {
         _initFormat();
 
         if (!_processed) {
@@ -64,7 +64,10 @@ class TextEngine {
         if (rand == null) {
             rand = new Random();
         }
-        Map<String,Word> savedWords = <String,Word>{};
+
+        if (story == null) {
+            story = new TextStory();
+        }
 
         Word rootWord = _getWord(rootList);
 
@@ -73,7 +76,7 @@ class TextEngine {
             return "[$rootList]";
         }
 
-        return _process(rootWord.get(variant), savedWords);
+        return _process(rootWord.get(variant), story.variables);
     }
 
     Future<Null> loadList(String key) async {
@@ -86,10 +89,37 @@ class TextEngine {
 
         WordListFile file = await Loader.getResource("$WORDLIST_PATH$key.words", format: FORMAT);
 
-        sourceWordLists.addAll(file.lists);
-
         for (String include in file.includes) {
             await loadList(include);
+        }
+
+        //sourceWordLists.addAll(file.lists);
+
+        // let's get a little more nuanced for merging lists together
+        for (String name in file.lists.keys) {
+            WordList list = file.lists[name];
+
+            if(sourceWordLists.containsKey(name)) {
+                WordList originalList = sourceWordLists[name];
+
+                originalList.addAll(list);
+
+                // includes add weights if they already exist
+                for (String key in list.includes.keys) {
+                    if (originalList.includes.containsKey(key)) {
+                        originalList.includes[key] = originalList.includes[key] + list.includes[key];
+                    } else {
+                        originalList.includes[key] = list.includes[key];
+                    }
+                }
+
+                // defaults just override, but don't clear existing entries not in the new list
+                for (String key in list.defaults.keys) {
+                    originalList.defaults[key] = list.defaults[key];
+                }
+            } else {
+                sourceWordLists[name] = list;
+            }
         }
 
         _processed = false;
@@ -323,4 +353,14 @@ class WordListFile {
 
     @override
     String toString() => "[WordListFile: $lists ]";
+}
+
+class TextStory {
+    Map<String,Word> variables = <String,Word>{};
+
+    operator []=(String name, Word value) => variables[name] = value;
+    void setString(String name, String value) => variables[name] = new Word(value);
+
+    Word operator [](String name) => variables[name];
+    String getString(String name) => variables[name].get();
 }
