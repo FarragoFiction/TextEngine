@@ -102,7 +102,10 @@ class TextEngine {
             if(sourceWordLists.containsKey(name)) {
                 WordList originalList = sourceWordLists[name];
 
-                originalList.addAll(list);
+                // copy in the new words
+                for (WeightPair<Word> pair in list.pairs) {
+                    originalList.add(new Word.copy(pair.item), pair.weight);
+                }
 
                 // includes add weights if they already exist
                 for (String key in list.includes.keys) {
@@ -118,7 +121,7 @@ class TextEngine {
                     originalList.defaults[key] = list.defaults[key];
                 }
             } else {
-                sourceWordLists[name] = list;
+                sourceWordLists[name] = new WordList.copy(list);
             }
         }
 
@@ -265,7 +268,7 @@ class Word {
         _variants[BASE_NAME] = word;
     }
 
-    factory Word.copy(Word other) => new Word(other.get(), other._variants);
+    factory Word.copy(Word other) => new Word(other.get(), new Map<String,String>.from(other._variants));
 
     String get([String variant]) {
         if (variant == null) {
