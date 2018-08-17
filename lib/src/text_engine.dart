@@ -19,7 +19,8 @@ List<String> escapedSplit(String input, RegExp pattern) => pattern.allMatches(in
 class TextEngine {
     static WordListFileFormat FORMAT = _initFormat();
 
-    static const String WORDLIST_PATH = "wordlists/";
+    static const String DEFAULT_WORDLIST_PATH = "wordlists";
+    String wordlist_path = DEFAULT_WORDLIST_PATH;
 
     static const String DELIMITER = "#";
     static const String SEPARATOR = "|";
@@ -46,7 +47,7 @@ class TextEngine {
     bool _processed = false;
     Random rand;
 
-    TextEngine([int seed = null]) {
+    TextEngine([int seed = null, String this.wordlist_path = DEFAULT_WORDLIST_PATH]) {
         this.rand = new Random(seed);
     }
 
@@ -87,7 +88,7 @@ class TextEngine {
 
         _loadedFiles.add(key);
 
-        WordListFile file = await Loader.getResource("$WORDLIST_PATH$key.words", format: FORMAT);
+        WordListFile file = await Loader.getResource("$wordlist_path/$key.words", format: FORMAT);
 
         for (String include in file.includes) {
             await loadList(include);
