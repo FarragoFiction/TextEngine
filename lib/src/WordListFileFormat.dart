@@ -100,10 +100,11 @@ class WordListFileFormat extends StringFileFormat<WordListFile> {
                             List<String> parts = escapedSplit(content, TextEngine.FILE_SEPARATOR_PATTERN);
                             double weight = 1.0;
                             if (parts.length > 1) {
-                                weight = double.parse(parts[1], (String part) {
+                                weight = double.tryParse(parts[1]);
+                                if (weight == null){
                                     _LOGGER.warn("Invalid include weight '${parts[1]}' for word '${parts[0]}' in list '${currentList.name}', using 1.0");
-                                    return 1.0;
-                                });
+                                    weight = 1.0;
+                                }
                             }
                             currentList.includes[_removeEscapes(include)] = weight;
 
@@ -113,10 +114,11 @@ class WordListFileFormat extends StringFileFormat<WordListFile> {
                             List<String> parts = escapedSplit(line, TextEngine.FILE_SEPARATOR_PATTERN);
                             double weight = 1.0;
                             if (parts.length > 1) {
-                                weight = double.parse(parts[1], (String part) {
+                                weight = double.tryParse(parts[1]);
+                                if (weight == null) {
                                     _LOGGER.warn("Invalid weight '${parts[1]}' for word '${parts[0]}' in list '${currentList.name}', using 1.0");
-                                    return 1.0;
-                                });
+                                    weight = 1.0;
+                                }
                             }
                             currentWord = new Word(_removeEscapes(parts[0]).trim());
                             currentList.add(currentWord, weight);
