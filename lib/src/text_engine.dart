@@ -1,7 +1,7 @@
 import "dart:async";
 
 import "package:CommonLib/Collection.dart";
-import "package:CommonLib/Logging.dart";
+//import "package:CommonLib/Logging.dart";
 import "package:CommonLib/Random.dart";
 
 import "package:LoaderLib/Loader.dart";
@@ -34,7 +34,7 @@ class TextEngine {
     static final RegExp SECTION_SEPARATOR_PATTERN = new RegExp("([^\\\\$SECTION_SEPARATOR]|\\\\$SECTION_SEPARATOR)+");
     static final RegExp FILE_SEPARATOR_PATTERN = new RegExp("([^\\\\$FILE_SEPARATOR]|\\\\$FILE_SEPARATOR)+");
 
-    static Logger _LOGGER = new Logger("TextEngine");//, true);
+    //  static Logger _LOGGER = new Logger("TextEngine");//, true);
 
     static RegExp MAIN_PATTERN = new RegExp("$DELIMITER(.*?)$DELIMITER");
     static RegExp REFERENCE_PATTERN = new RegExp("\\?(.*?)\\?");
@@ -73,7 +73,7 @@ class TextEngine {
         Word rootWord = _getWord(rootList);
 
         if (rootWord == null) {
-            _LOGGER.debug("Root list '$rootList' not found");
+//            _LOGGER.debug("Root list '$rootList' not found");
             return "[$rootList]";
         }
 
@@ -82,7 +82,7 @@ class TextEngine {
 
     Future<Null> loadList(String key) async {
         if (_loadedFiles.contains(key)) {
-            _LOGGER.debug("World list '$key' already loaded, skipping");
+            //          _LOGGER.debug("World list '$key' already loaded, skipping");
             return;
         }
 
@@ -130,7 +130,7 @@ class TextEngine {
     }
 
     void processLists() {
-        _LOGGER.debug("Processing word lists");
+        // _LOGGER.debug("Processing word lists");
         this._processed = true;
         this.wordLists.clear();
 
@@ -177,7 +177,7 @@ class TextEngine {
 
     Word _getWord(String list) {
         if (!wordLists.containsKey(list)) {
-            _LOGGER.debug("List '$list' not found");
+            //  _LOGGER.debug("List '$list' not found");
             return null;
         }
 
@@ -237,7 +237,7 @@ class TextEngine {
             String output = outword.get(variant);
 
             if (output == null) {
-                _LOGGER.debug("Missing variant '$variant' for word '$outword', falling back to base");
+                //  _LOGGER.debug("Missing variant '$variant' for word '$outword', falling back to base");
                 output = outword.get();
             }
 
@@ -331,7 +331,7 @@ class WordList extends WeightedList<Word> {
                 WordList list = wordlists[key];
 
                 if (visited.contains(list)) {
-                    TextEngine._LOGGER.warn("Include loop detected in list '$name', already visited '${list.name}', ignoring");
+                    //  TextEngine._LOGGER.warn("Include loop detected in list '$name', already visited '${list.name}', ignoring");
                     continue;
                 }
 
