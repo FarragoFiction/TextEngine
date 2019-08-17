@@ -7,102 +7,102 @@ import "package:LoaderLib/Loader.dart";
 import "text_engine.dart";
 
 class WordListFileFormat extends StringFileFormat<WordListFile> {
-    static const String _HEADER = "TextEngine Word List";
-    static RegExp _NEWLINE = new RegExp("[\n\r]+");
-    static RegExp _SPACES = new RegExp("( *)(.*)");
-    static RegExp _COMMENT_START = new RegExp("^\s*\/\/");
-    static RegExp _COMMENT_SPLIT = new RegExp("\/\/");
-    static Logger _LOGGER = new Logger("WordListFileFormat");//, true);
-    static int _TAB = 4;
+    static const String _header = "TextEngine Word List";
+    static final RegExp _newline = new RegExp("[\n\r]+");
+    static final RegExp _spaces = new RegExp("( *)(.*)");
+    static final RegExp _comment_start = new RegExp("^\s*\/\/");
+    static final RegExp _comment_split = new RegExp("\/\/");
+    static final Logger _logger = new Logger("WordListFileFormat");//, true);
+    static const int _tab = 4;
     
     @override
     String mimeType() => "text/plain";
 
     @override
     Future<WordListFile> read(String input) async {
-        List<String> lines = input.split(_NEWLINE);
-        if (lines[0].trimRight() != header()) { throw "Invalid WordList file header: '${lines[0]}'"; }
+        final List<String> lines = input.split(_newline);
+        if (lines[0].trimRight() != header()) { throw Exception("Invalid WordList file header: '${lines[0]}'"); }
 
-        WordListFile file = new WordListFile();
+        final WordListFile file = new WordListFile();
 
         int lineNumber = 0;
 
-        WordList currentList = null;
-        Word currentWord = null;
+        WordList currentList;
+        Word currentWord;
 
-        Map<String,String> globalDefaults = <String,String>{};
+        final Map<String,String> globalDefaults = <String,String>{};
 
         while (lineNumber+1 < lines.length) {
             lineNumber++;
             String line = lines[lineNumber];
-            _LOGGER.debug("Reading line $lineNumber, raw: $line");
-            line = line.split(_COMMENT_SPLIT)[0];
+            _logger.debug("Reading line $lineNumber, raw: $line");
+            line = line.split(_comment_split)[0];
 
             if (line.isEmpty) {
-                _LOGGER.debug("Empty line");
+                _logger.debug("Empty line");
                 continue;
             }
-            if (line.startsWith(_COMMENT_START)) {
-                _LOGGER.debug("Comment: $line");
+            if (line.startsWith(_comment_start)) {
+                _logger.debug("Comment: $line");
                 continue;
             }
 
-            if (line.startsWith(TextEngine.INCLUDE_SYMBOL)) {
-                String include = line.substring(1);
-                _LOGGER.debug("new file include: $include");
+            if (line.startsWith(TextEngine.includeSymbol)) {
+                final String include = line.substring(1);
+                _logger.debug("new file include: $include");
                 file.includes.add(include);
-            } else if (line.startsWith(TextEngine.DEFAULT_SYMBOL)) {
-                List<String> parts = escapedSplit(line.substring(1), TextEngine.FILE_SEPARATOR_PATTERN);
+            } else if (line.startsWith(TextEngine.defaultSymbol)) {
+                final List<String> parts = escapedSplit(line.substring(1), TextEngine.fileSeparatorPattern);
                 if (parts.length < 2) {
-                    _LOGGER.error("Invalid global default '$line'");
+                    _logger.error("Invalid global default '$line'");
                 } else {
-                    String def = parts[0];
-                    String val = parts[1];
-                    _LOGGER.debug("new global default '$def': '$val'");
+                    final String def = parts[0];
+                    final String val = parts[1];
+                    _logger.debug("new global default '$def': '$val'");
                     globalDefaults[def] = val;
                 }
             } else {
-                Match m = _SPACES.matchAsPrefix(line);
+                final Match m = _spaces.matchAsPrefix(line);
                 if (m != null) {
-                    int spaces = m.group(1).length;
+                    final int spaces = m.group(1).length;
                     String content = line.substring(spaces);
                     if (content.isEmpty) { continue; }
 
                     if (spaces == 0) { // new wordlist
 
                         content = content.trimRight();
-                        _LOGGER.debug("new WordList: $content");
+                        _logger.debug("new WordList: $content");
                         currentList = new WordList(content);
                         currentList.defaults.addAll(globalDefaults);
                         file.lists[content] = currentList;
 
-                    } else if (spaces == _TAB) { // a default or include or word
+                    } else if (spaces == _tab) { // a default or include or word
 
-                        if (content.startsWith(TextEngine.DEFAULT_SYMBOL)) { // default
+                        if (content.startsWith(TextEngine.defaultSymbol)) { // default
 
                             content = content.substring(1);
-                            List<String> parts = escapedSplit(content, TextEngine.FILE_SEPARATOR_PATTERN);
+                            final List<String> parts = escapedSplit(content, TextEngine.fileSeparatorPattern);
 
-                            _LOGGER.debug("list default: $content");
+                            _logger.debug("list default: $content");
                             if (parts.length < 2) {
-                                _LOGGER.error("Invalid list default '$line'");
+                                _logger.error("Invalid list default '$line'");
                             } else if (currentList != null) {
-                                String def = _removeEscapes(parts[0]);
-                                String val = _removeEscapes(parts[1]);
-                                _LOGGER.debug("new list default for '${currentList.name}': '$def' -> '$val'");
+                                final String def = _removeEscapes(parts[0]);
+                                final String val = _removeEscapes(parts[1]);
+                                _logger.debug("new list default for '${currentList.name}': '$def' -> '$val'");
                                 currentList.defaults[def] = val;
                             }
 
-                        } else if (content.startsWith(TextEngine.INCLUDE_SYMBOL)) { // include
+                        } else if (content.startsWith(TextEngine.includeSymbol)) { // include
 
-                            String include = content.substring(1);
-                            _LOGGER.debug("list include: $include");
-                            List<String> parts = escapedSplit(content, TextEngine.FILE_SEPARATOR_PATTERN);
+                            final String include = content.substring(1);
+                            _logger.debug("list include: $include");
+                            final List<String> parts = escapedSplit(content, TextEngine.fileSeparatorPattern);
                             double weight = 1.0;
                             if (parts.length > 1) {
                                 weight = double.tryParse(parts[1]);
                                 if (weight == null){
-                                    _LOGGER.warn("Invalid include weight '${parts[1]}' for word '${parts[0]}' in list '${currentList.name}', using 1.0");
+                                    _logger.warn("Invalid include weight '${parts[1]}' for word '${parts[0]}' in list '${currentList.name}', using 1.0");
                                     weight = 1.0;
                                 }
                             }
@@ -110,13 +110,13 @@ class WordListFileFormat extends StringFileFormat<WordListFile> {
 
                         } else { // word
 
-                            _LOGGER.debug("new Word: $content");
-                            List<String> parts = escapedSplit(line, TextEngine.FILE_SEPARATOR_PATTERN);
+                            _logger.debug("new Word: $content");
+                            final List<String> parts = escapedSplit(line, TextEngine.fileSeparatorPattern);
                             double weight = 1.0;
                             if (parts.length > 1) {
                                 weight = double.tryParse(parts[1]);
                                 if (weight == null) {
-                                    _LOGGER.warn("Invalid weight '${parts[1]}' for word '${parts[0]}' in list '${currentList.name}', using 1.0");
+                                    _logger.warn("Invalid weight '${parts[1]}' for word '${parts[0]}' in list '${currentList.name}', using 1.0");
                                     weight = 1.0;
                                 }
                             }
@@ -125,12 +125,12 @@ class WordListFileFormat extends StringFileFormat<WordListFile> {
 
                         }
 
-                    } else if (spaces == _TAB*2) { // a variant
+                    } else if (spaces == _tab*2) { // a variant
 
-                        _LOGGER.debug("new Variant: $content");
-                        List<String> parts = escapedSplit(line, TextEngine.FILE_SEPARATOR_PATTERN);
+                        _logger.debug("new Variant: $content");
+                        final List<String> parts = escapedSplit(line, TextEngine.fileSeparatorPattern);
                         if (parts.length != 2) {
-                            _LOGGER.error("Invalid variant for ${currentWord.get()} in ${currentList.name}");
+                            _logger.error("Invalid variant for ${currentWord.get()} in ${currentList.name}");
                         } else {
                             currentWord.addVariant(_removeEscapes(parts[0]).trim(), _removeEscapes(_trimFirstSpace(parts[1])));
                         }
@@ -144,10 +144,10 @@ class WordListFileFormat extends StringFileFormat<WordListFile> {
     }
 
     @override
-    Future<String> write(WordListFile data) => throw "WordListFile write NYI";
+    Future<String> write(WordListFile data) => throw Exception("WordListFile write NYI");
 
     @override
-    String header() => _HEADER;
+    String header() => _header;
 
     static String _trimFirstSpace(String input) {
         if (input.startsWith(" ")) {
@@ -156,5 +156,5 @@ class WordListFileFormat extends StringFileFormat<WordListFile> {
         return input;
     }
 
-    static String _removeEscapes(String input) => input.replaceAll(TextEngine.ESCAPE_PATTERN, "");
+    static String _removeEscapes(String input) => input.replaceAll(TextEngine.escapePattern, "");
 }
