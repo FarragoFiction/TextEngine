@@ -9,6 +9,7 @@ class TextEngine extends ParentInterface.TextEngine {
 
     @override
     Future<ParentInterface.WordListFile> loadListFile(String path) async {
+        if (Platform.isWindows) { path = path.replaceAll("/", "\\"); }
         final File file = new File(path);
         return WordListFileBuilder.process(await file.readAsString());
     }
