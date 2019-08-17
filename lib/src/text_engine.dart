@@ -4,9 +4,7 @@ import "package:CommonLib/Collection.dart";
 import "package:CommonLib/Logging.dart";
 import "package:CommonLib/Random.dart";
 
-import "package:LoaderLib/Loader.dart";
-
-import "WordListFileFormat.dart";
+import "text_engine_web.dart" if (dart.library.io) "text_engine_vm.dart" as Implementation;
 
 /*
     TODO:
@@ -16,9 +14,7 @@ import "WordListFileFormat.dart";
 String _escapedMapping(Match m) => m.group(0);
 List<String> escapedSplit(String input, RegExp pattern) => pattern.allMatches(input).map(_escapedMapping).toList();
 
-class TextEngine {
-    static WordListFileFormat format = _initFormat();
-
+abstract class TextEngine {
     static const String defaultWordListPath = "wordlists";
     String wordListPath = defaultWordListPath;
 
@@ -47,7 +43,11 @@ class TextEngine {
     bool _processed = false;
     Random rand;
 
-    TextEngine([int seed, String this.wordListPath = defaultWordListPath]) {
+    factory TextEngine([int seed, String wordListPath = defaultWordListPath]) {
+        return new Implementation.TextEngine.create(seed, wordListPath);
+    }
+
+    TextEngine.create([int seed, String this.wordListPath = defaultWordListPath]) {
         this.rand = new Random(seed);
     }
 
@@ -56,8 +56,6 @@ class TextEngine {
     }
 
     String phrase(String rootList, {String variant, TextStory story}) {
-        _initFormat();
-
         if (!_processed) {
             this.processLists();
         }
@@ -75,6 +73,8 @@ class TextEngine {
         return _process(rootWord.get(variant), story.variables);
     }
 
+    Future<WordListFile> loadListFile(String path);
+
     Future<void> loadList(String key) async {
         if (_loadedFiles.contains(key)) {
             _logger.debug("World list '$key' already loaded, skipping");
@@ -83,7 +83,7 @@ class TextEngine {
 
         _loadedFiles.add(key);
 
-        final WordListFile file = await Loader.getResource("$wordListPath/$key.words", format: format);
+        final WordListFile file = await loadListFile("$wordListPath/$key.words");
 
         for (final String include in file.includes) {
             await loadList(include);
@@ -240,16 +240,6 @@ class TextEngine {
         });
 
         return input;
-    }
-
-    static bool _formatInitialised = false;
-    static WordListFileFormat _initFormat() {
-        if (_formatInitialised) { return null; }
-        _formatInitialised = true;
-
-        final WordListFileFormat format = new WordListFileFormat();
-        Formats.addMapping(format, ".words");
-        return format;
     }
 }
 

@@ -1,5 +1,5 @@
 import 'package:TextEngine/TextEngine.dart';
 
-main() {
-
+void main() {
+    TextEngine engine = new TextEngine();
 }
