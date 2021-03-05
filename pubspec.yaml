@@ -9,9 +9,13 @@ environment:
 
 dependencies:
   CommonLib:
-    git: git://github.com/FarragoFiction/CommonLib.git
+    git:
+      url: git://github.com/FarragoFiction/CommonLib.git
+      ref: Dart-2.8.1
   LoaderLib:
-    git: git://github.com/FarragoFiction/LoaderLib.git
+    git:
+      url: git://github.com/FarragoFiction/LoaderLib.git
+      ref: Dart-2.8.1
 
 dev_dependencies:
   build_runner: ^1.6.0
