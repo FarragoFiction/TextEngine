@@ -21,8 +21,8 @@ abstract class WordListFileBuilder {
 
         int lineNumber = 0;
 
-        WordList currentList;
-        Word currentWord;
+        WordList? currentList;
+        Word? currentWord;
 
         final Map<String, String> globalDefaults = <String, String>{};
 
@@ -56,10 +56,10 @@ abstract class WordListFileBuilder {
                     globalDefaults[def] = val;
                 }
             } else {
-                final Match m = _spaces.matchAsPrefix(line);
+                final Match? m = _spaces.matchAsPrefix(line);
                 if (m != null) {
                     final int spaces = m
-                        .group(1)
+                        .group(1)!
                         .length;
                     String content = line.substring(spaces);
                     if (content.isEmpty) {
@@ -94,38 +94,38 @@ abstract class WordListFileBuilder {
                             final String include = content.substring(1);
                             _logger.debug("list include: $include");
                             final List<String> parts = escapedSplit(content, TextEngine.fileSeparatorPattern);
-                            double weight = 1.0;
+                            double? weight = 1.0;
                             if (parts.length > 1) {
                                 weight = double.tryParse(parts[1]);
                                 if (weight == null) {
-                                    _logger.warn("Invalid include weight '${parts[1]}' for word '${parts[0]}' in list '${currentList.name}', using 1.0");
+                                    _logger.warn("Invalid include weight '${parts[1]}' for word '${parts[0]}' in list '${currentList?.name}', using 1.0");
                                     weight = 1.0;
                                 }
                             }
-                            currentList.includes[_removeEscapes(include)] = weight;
+                            currentList?.includes[_removeEscapes(include)] = weight;
                         } else { // word
 
                             _logger.debug("new Word: $content");
                             final List<String> parts = escapedSplit(line, TextEngine.fileSeparatorPattern);
-                            double weight = 1.0;
+                            double? weight = 1.0;
                             if (parts.length > 1) {
                                 weight = double.tryParse(parts[1]);
                                 if (weight == null) {
-                                    _logger.warn("Invalid weight '${parts[1]}' for word '${parts[0]}' in list '${currentList.name}', using 1.0");
+                                    _logger.warn("Invalid weight '${parts[1]}' for word '${parts[0]}' in list '${currentList?.name}', using 1.0");
                                     weight = 1.0;
                                 }
                             }
                             currentWord = new Word(_removeEscapes(parts[0]).trim());
-                            currentList.add(currentWord, weight);
+                            currentList?.add(currentWord, weight);
                         }
                     } else if (spaces == _tab * 2) { // a variant
 
                         _logger.debug("new Variant: $content");
                         final List<String> parts = escapedSplit(line, TextEngine.fileSeparatorPattern);
                         if (parts.length != 2) {
-                            _logger.error("Invalid variant for ${currentWord.get()} in ${currentList.name}");
+                            _logger.error("Invalid variant for ${currentWord?.get()} in ${currentList?.name}");
                         } else {
-                            currentWord.addVariant(_removeEscapes(parts[0]).trim(), _removeEscapes(_trimFirstSpace(parts[1])));
+                            currentWord?.addVariant(_removeEscapes(parts[0]).trim(), _removeEscapes(_trimFirstSpace(parts[1])));
                         }
                     }
                 }

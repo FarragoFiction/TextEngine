@@ -6,7 +6,7 @@ import "text_engine.dart" as ParentInterface;
 class TextEngine extends ParentInterface.TextEngine {
     static WordListFileFormat format = _initFormat();
 
-    TextEngine.create([int seed, String wordListPath = ParentInterface.TextEngine.defaultWordListPath]) : super.create(seed, wordListPath);
+    TextEngine.create([int? seed, String wordListPath = ParentInterface.TextEngine.defaultWordListPath]) : super.create(seed, wordListPath);
 
     @override
     Future<ParentInterface.WordListFile> loadListFile(String path) {
@@ -14,14 +14,14 @@ class TextEngine extends ParentInterface.TextEngine {
     }
 
     @override
-    String phrase(String rootList, {String variant, ParentInterface.TextStory story}) {
+    String? phrase(String rootList, {String? variant, ParentInterface.TextStory? story}) {
         _initFormat();
         return super.phrase(rootList, variant:variant, story:story);
     }
 
     static bool _formatInitialised = false;
     static WordListFileFormat _initFormat() {
-        if (_formatInitialised) { return null; }
+        if (_formatInitialised) { return TextEngine.format; }
         _formatInitialised = true;
 
         final WordListFileFormat format = new WordListFileFormat();

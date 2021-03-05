@@ -11,7 +11,7 @@ import "text_engine_web.dart" if (dart.library.io) "text_engine_vm.dart" as Impl
     - switching from recursive to iterative, with iteration limit
  */
 
-String _escapedMapping(Match m) => m.group(0);
+String _escapedMapping(Match m) => m.group(0)!;
 List<String> escapedSplit(String input, RegExp pattern) => pattern.allMatches(input).map(_escapedMapping).toList();
 
 abstract class TextEngine {
@@ -41,13 +41,13 @@ abstract class TextEngine {
     Map<String, WordList> wordLists = <String, WordList>{};
 
     bool _processed = false;
-    Random rand;
+    Random? rand;
 
-    factory TextEngine([int seed, String wordListPath = defaultWordListPath]) {
+    factory TextEngine([int? seed, String wordListPath = defaultWordListPath]) {
         return new Implementation.TextEngine.create(seed, wordListPath);
     }
 
-    TextEngine.create([int seed, String this.wordListPath = defaultWordListPath]) {
+    TextEngine.create([int? seed, String this.wordListPath = defaultWordListPath]) {
         this.rand = new Random(seed);
     }
 
@@ -55,7 +55,7 @@ abstract class TextEngine {
         this.rand = new Random(seed);
     }
 
-    String phrase(String rootList, {String variant, TextStory story}) {
+    String? phrase(String rootList, {String? variant, TextStory? story}) {
         if (!_processed) {
             this.processLists();
         }
@@ -63,7 +63,7 @@ abstract class TextEngine {
         rand ??= new Random();
         story ??= new TextStory();
 
-        final Word rootWord = _getWord(rootList);
+        final Word? rootWord = _getWord(rootList);
 
         if (rootWord == null) {
             _logger.debug("Root list '$rootList' not found");
@@ -93,10 +93,10 @@ abstract class TextEngine {
 
         // let's get a little more nuanced for merging lists together
         for (final String name in file.lists.keys) {
-            final WordList list = file.lists[name];
+            final WordList list = file.lists[name]!;
 
             if(sourceWordLists.containsKey(name)) {
-                final WordList originalList = sourceWordLists[name];
+                final WordList originalList = sourceWordLists[name]!;
 
                 // copy in the new words
                 for (final WeightPair<Word> pair in list.pairs) {
@@ -106,15 +106,15 @@ abstract class TextEngine {
                 // includes add weights if they already exist
                 for (final String key in list.includes.keys) {
                     if (originalList.includes.containsKey(key)) {
-                        originalList.includes[key] = originalList.includes[key] + list.includes[key];
+                        originalList.includes[key] = originalList.includes[key]! + list.includes[key]!;
                     } else {
-                        originalList.includes[key] = list.includes[key];
+                        originalList.includes[key] = list.includes[key]!;
                     }
                 }
 
                 // defaults just override, but don't clear existing entries not in the new list
                 for (final String key in list.defaults.keys) {
-                    originalList.defaults[key] = list.defaults[key];
+                    originalList.defaults[key] = list.defaults[key]!;
                 }
             } else {
                 sourceWordLists[name] = new WordList.copy(list);
@@ -130,20 +130,20 @@ abstract class TextEngine {
         this.wordLists.clear();
 
         for (final String key in this.sourceWordLists.keys) {
-            final WordList list = new WordList.copy(this.sourceWordLists[key]);
+            final WordList list = new WordList.copy(this.sourceWordLists[key]!);
             this.wordLists[key] = list;
 
             for (final String dkey in list.defaults.keys) {
                 for (final Word w in list) {
                     if (!w._variants.containsKey(dkey)) {
-                        w.addVariant(dkey, list.defaults[dkey]);
+                        w.addVariant(dkey, list.defaults[dkey]!);
                     }
                 }
             }
         }
 
         for (final String key in this.wordLists.keys) {
-            final WordList list = this.wordLists[key];
+            final WordList list = this.wordLists[key]!;
 
             list.processIncludes(this.wordLists);
 
@@ -152,43 +152,44 @@ abstract class TextEngine {
                 // add default variants
                 for (final String dkey in list.defaults.keys) {
                     if (!word._variants.containsKey(dkey)) {
-                        word._variants[dkey] = list.defaults[dkey];
+                        word._variants[dkey] = list.defaults[dkey]!;
                     }
                 }
 
                 // resolve references
                 for (final String vkey in word._variants.keys) {
-                    word._variants[vkey] = word._variants[vkey].replaceAllMapped(referencePattern, (Match match) {
-                        final String variant = match.group(1);
+                    word._variants[vkey] = word._variants[vkey]!.replaceAllMapped(referencePattern, (Match match) {
+                        final String variant = match.group(1)!;
                         if (!word._variants.containsKey(variant)) {
                             return "[$variant]";
                         }
-                        return word._variants[variant];
+                        return word._variants[variant]!;
                     });
                 }
             }
         }
     }
 
-    Word _getWord(String list) {
+    Word? _getWord(String list) {
         if (!wordLists.containsKey(list)) {
             _logger.debug("List '$list' not found");
             return null;
         }
 
-        final WordList words = wordLists[list];
+        final WordList words = wordLists[list]!;
 
-        return rand.pickFrom(words);
+        return rand!.pickFrom(words);
     }
 
-    String _process(String input, Map<String,Word> savedWords) {
+    String? _process(String? input, Map<String,Word> savedWords) {
+        if (input == null) { return null; }
 
         input = input.replaceAllMapped(mainPattern, (Match match) {
-            final String raw = match.group(1);
+            final String raw = match.group(1)!;
             final List<String> sections = escapedSplit(raw, separatorPattern);//raw.split(SEPARATOR);
 
-            Word outword;
-            String variant;
+            Word? outword;
+            String? variant;
 
             // main section
             {
@@ -198,7 +199,7 @@ abstract class TextEngine {
                     variant = parts[1];
                 }
 
-                final Word w = _getWord(parts[0]);
+                final Word? w = _getWord(parts[0]);
 
                 outword = w;
             }
@@ -219,7 +220,7 @@ abstract class TextEngine {
                         if (savedWords.containsKey(variable)) {
                             outword = savedWords[variable];
                         } else {
-                            savedWords[variable] = outword;
+                            savedWords[variable] = outword!;
                         }
 
                     }
@@ -229,14 +230,14 @@ abstract class TextEngine {
             if (outword == null) {
                 return "[${sections[0]}]";
             }
-            String output = outword.get(variant);
+            String? output = outword.get(variant);
 
             if (output == null) {
                 _logger.debug("Missing variant '$variant' for word '$outword', falling back to base");
                 output = outword.get();
             }
 
-            return _process(output, savedWords);
+            return _process(output, savedWords) ?? "";
         });
 
         return input;
@@ -245,19 +246,19 @@ abstract class TextEngine {
 
 class Word {
     static const String baseName = "MAIN";
-    Map<String,String> _variants;
+    late Map<String,String> _variants;
 
-    Word(String word, [Map<String,String> this._variants]) {
-        _variants ??= <String,String>{};
+    Word(String word, [Map<String,String>? variants]) {
+        _variants = variants ?? <String,String>{};
         _variants[baseName] = word;
     }
 
-    factory Word.copy(Word other) => new Word(other.get(), new Map<String,String>.from(other._variants));
+    factory Word.copy(Word other) => new Word(other.get()!, new Map<String,String>.from(other._variants));
 
-    String get([String variant]) {
+    String? get([String? variant]) {
         variant ??= baseName;
         if (_variants.containsKey(variant)) {
-            return _variants[variant];
+            return _variants[variant]!;
         }
         return null;
     }
@@ -283,11 +284,11 @@ class WordList extends WeightedList<Word> {
         final WordList copy = new WordList(other.name);
 
         for (final String key in other.includes.keys) {
-            copy.includes[key] = other.includes[key];
+            copy.includes[key] = other.includes[key]!;
         }
 
         for (final String key in other.defaults.keys) {
-            copy.defaults[key] = other.defaults[key];
+            copy.defaults[key] = other.defaults[key]!;
         }
 
         for (final WeightPair<Word> pair in other.pairs) {
@@ -300,7 +301,7 @@ class WordList extends WeightedList<Word> {
     @override
     String toString() => "WordList '$name': ${super.toString()}";
 
-    void processIncludes(Map<String, WordList> wordlists, [Set<WordList> visited]) {
+    void processIncludes(Map<String, WordList> wordlists, [Set<WordList>? visited]) {
         if (_processed) { return; }
         _processed = true;
 
@@ -309,7 +310,7 @@ class WordList extends WeightedList<Word> {
 
         for (final String key in this.includes.keys) {
             if (wordlists.containsKey(key)) {
-                final WordList list = wordlists[key];
+                final WordList list = wordlists[key]!;
 
                 if (visited.contains(list)) {
                     TextEngine._logger.warn("Include loop detected in list '$name', already visited '${list.name}', ignoring");
@@ -322,9 +323,9 @@ class WordList extends WeightedList<Word> {
 
         for (final String key in includes.keys) {
             if (!wordlists.containsKey(key)) { continue; }
-            final WordList list = wordlists[key];
+            final WordList list = wordlists[key]!;
             for (final WeightPair<Word> pair in list.pairs) {
-                this.add(pair.item, pair.weight * includes[key]);
+                this.add(pair.item, pair.weight * includes[key]!);
             }
         }
     }
@@ -346,6 +347,6 @@ class TextStory {
     operator []=(String name, Word value) => variables[name] = value;
     void setString(String name, String value) => variables[name] = new Word(value);
 
-    Word operator [](String name) => variables[name];
-    String getString(String name) => variables[name].get();
+    Word? operator [](String name) => variables[name];
+    String? getString(String name) => variables[name]?.get();
 }
