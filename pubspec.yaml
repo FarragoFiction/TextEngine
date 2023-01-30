@@ -10,9 +10,9 @@ environment:
 
 dependencies:
   CommonLib:
-    git: git://github.com/FarragoFiction/CommonLib.git
+    git: https://github.com/FarragoFiction/CommonLib.git
   LoaderLib:
-    git: git://github.com/FarragoFiction/LoaderLib.git
+    git: https://github.com/FarragoFiction/LoaderLib.git
 
 dev_dependencies:
   build_runner: ^1.6.0
